@@ -1,7 +1,7 @@
 import "../../index.css";
 import { db } from "../../firebase/firebase";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore"; // Ensure addDoc is imported
 import { useAuth } from "../../contexts/authContext";
 
 const Task = () => {
@@ -64,13 +64,14 @@ const Task = () => {
                 <input
                   type="text"
                   value={task}
-                  onChange={(e) => setTask(e.target.value)}
+                  onChange={(e) => {setTask(e.target.value);
+
+                  }}
                 />
                 <button type="submit" className="btn btn-primary mt-2">
                   Add Task
                 </button>
               </form>
-
               {tasks.map(({ taskName, id }) => (
                 <div key={id} className="todo-list">
                   <div className="todo-item">
