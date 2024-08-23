@@ -4,8 +4,9 @@ import {
   doSignInWithEmailAndPassword,
   doSignInWithGoogle,
 } from "../../../firebase/auth";
+import { doc, setDoc, getDocs, collection, query, where } from "firebase/firestore";
+import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../../contexts/authContext";
-
 const Login = () => {
   const { userLoggedIn } = useAuth();
 
@@ -27,8 +28,28 @@ const Login = () => {
     e.preventDefault();
     if (!isSigningIn) {
       setIsSigningIn(true);
-      doSignInWithGoogle().catch((err) => {
+      var user= doSignInWithGoogle().catch(async (err) => {
         setIsSigningIn(false);
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("email", "==", user.email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          doSignInWithGoogle();
+        }
+        else{
+          try {
+          // Create a document in the 'users' collection with the user's UID as the document ID
+          await setDoc(doc(db, "users", user.uid), {
+            email: user.email,
+            displayName: user.displayName || "Anonymous", // You can add more fields as needed
+            createdAt: new Date(),
+          });
+          console.log("User added to Firestore successfully.");
+        } catch (error) {
+          console.error("Error adding user to Firestore: ", error);
+        }
+        }
       });
     }
   };
@@ -114,7 +135,8 @@ const Login = () => {
                 ? "cursor-not-allowed"
                 : "hover:bg-gray-100 transition duration-300 active:bg-gray-100"
             }`}
-          >google logo 
+          >
+            google logo
             {/* <svg
               className="w-5 h-5"
               viewBox="0 0 48 48"

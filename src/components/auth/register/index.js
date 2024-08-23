@@ -50,7 +50,7 @@ const Register = () => {
       
          await addUserToFirestore(user);
        
-      createUserDocument(user);
+      // createUserDocument(user);
     }
   };
 
