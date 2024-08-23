@@ -1,34 +1,54 @@
 import "../../index.css";
 import { db } from "../../firebase/firebase";
 import React, { useEffect, useState } from "react";
-import { collection, doc, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/authContext";
 
 const Task = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const { currentUser } = useAuth();
+
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
-  // const collectionRef = collection(db, "users/${");
+
   useEffect(() => {
     const getTasks = async () => {
-      await getDocs(collectionRef).then((task) => {
-        let tasksData = task.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-        setTasks(tasksData);
-      });
+      const taskSnapshot = await getDocs(collectionRef);
+      const tasksData = taskSnapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setTasks(tasksData);
     };
     getTasks();
-  }, []);
-  // console.log("tasks: ",tasks)
+  }, [collectionRef]);
+
   async function addTask(taskContent) {
-    // const { currentUser } = useAuth();
-    const tasksRef = collection(db, `users/${currentUser.uid}/tasks`);
-    await addDoc(tasksRef, {
-      taskName: taskContent,
-      createdAt: new Date(),
-      status: "pending",
-    });
+    if (!taskContent.trim()) {
+      return; // Prevent adding empty tasks
+    }
+
+    try {
+      const tasksRef = collection(db, `users/${currentUser.uid}/tasks`);
+      await addDoc(tasksRef, {
+        taskName: taskContent,
+        createdAt: new Date(),
+        status: "pending",
+      });
+
+      // After adding the task, refresh the task list
+      const taskSnapshot = await getDocs(collectionRef);
+      const updatedTasks = taskSnapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setTasks(updatedTasks);
+      setTask(""); // Clear the input field after adding the task
+    } catch (error) {
+      console.error("Error adding task: ", error);
+    }
   }
+
   return (
     <>
       <div className="container">
@@ -36,21 +56,23 @@ const Task = () => {
           <div className="card card-white">
             <div className="card-body">
               <form
-                onSubmit={() => {
+                onSubmit={(e) => {
+                  e.preventDefault();
                   addTask(task);
                 }}
               >
                 <input
                   type="text"
                   value={task}
-                  onChange={(e) => {
-                    setTask(e.target.value);
-                  }}
-                ></input>
+                  onChange={(e) => setTask(e.target.value)}
+                />
+                <button type="submit" className="btn btn-primary mt-2">
+                  Add Task
+                </button>
               </form>
 
               {tasks.map(({ taskName, id }) => (
-                <div className="todo-list">
+                <div key={id} className="todo-list">
                   <div className="todo-item">
                     <hr />
                     <span>
@@ -79,4 +101,5 @@ const Task = () => {
     </>
   );
 };
+
 export default Task;
