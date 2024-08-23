@@ -1,20 +1,20 @@
 import "../../index.css";
 import { db } from "../../firebase/firebase";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore"; // Ensure addDoc is imported
+import { collection, getDocs, addDoc, query, orderBy, limit } from "firebase/firestore";
 import { useAuth } from "../../contexts/authContext";
 
 const Task = () => {
-  
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const { currentUser } = useAuth();
-
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
 
+  // Fetch limited tasks initially
   useEffect(() => {
     const getTasks = async () => {
-      const taskSnapshot = await getDocs(collectionRef);
+      const taskQuery = query(collectionRef, orderBy("createdAt", "desc"), limit(10));
+      const taskSnapshot = await getDocs(taskQuery);
       const tasksData = taskSnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
@@ -25,26 +25,22 @@ const Task = () => {
   }, [collectionRef]);
 
   async function addTask(taskContent) {
-    if (!taskContent.trim()) {
-      return; // Prevent adding empty tasks
+    if (!taskContent.trim() || tasks.some(task => task.taskName === taskContent.trim())) {
+      return; // Prevent adding empty or duplicate tasks
     }
 
     try {
-      const tasksRef = collection(db, `users/${currentUser.uid}/tasks`);
-      await addDoc(tasksRef, {
+      const newTask = {
         taskName: taskContent,
         createdAt: new Date(),
         status: "pending",
-      });
+      };
+      
+      await addDoc(collectionRef, newTask);
 
-      // After adding the task, refresh the task list
-      const taskSnapshot = await getDocs(collectionRef);
-      const updatedTasks = taskSnapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setTasks(updatedTasks);
-      setTask(""); // Clear the input field after adding the task
+      // Update the local state directly
+      setTasks([newTask, ...tasks]);
+      setTask(""); // Clear the input field
     } catch (error) {
       console.error("Error adding task: ", error);
     }
@@ -56,12 +52,9 @@ const Task = () => {
         <div className="row col-md-12">
           <div className="card card-white">
             <div className="card-body">
-            <button type="submit" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-  Add Task
-</button>
-
-
-             {/* Button trigger modal */}
+              <button type="submit" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                Add Task
+              </button>
 
               {tasks.map(({ taskName, id }) => (
                 <div key={id} className="todo-list">
@@ -91,40 +84,38 @@ const Task = () => {
         </div>
       </div>
 
-
-
-      {/* modal */}
-<div className="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div className="modal-dialog">
-    <div className="modal-content">
-      <div className="modal-header">
-        <h1 className="modal-title fs-5" id="exampleModalLabel">Add New Task</h1>
-        <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div className="modal-body">
-      <form className="d-flex"
+      {/* Modal */}
+      <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">Add New Task</h1>
+              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div className="modal-body">
+              <form
+                className="d-flex"
                 onSubmit={(e) => {
                   e.preventDefault();
                   addTask(task);
                 }}
               >
-                <input className="form-control"
-                  type="text" placeholder="Enter the task"
+                <input
+                  className="form-control"
+                  type="text"
+                  placeholder="Enter the task"
                   value={task}
-                  onChange={(e) => {setTask(e.target.value);
-
-                  }}
+                  onChange={(e) => setTask(e.target.value)}
                 />
-                
               </form>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" className="btn btn-primary">Save changes</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="modal-footer">
-        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="submit" className="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div>
     </>
   );
 };
