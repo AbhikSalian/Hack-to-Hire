@@ -1,7 +1,7 @@
 import "../../index.css";
 import { db } from "../../firebase/firebase";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, addDoc, onSnapshot } from "firebase/firestore"; // Ensure addDoc and onSnapshot are imported
+import { collection, getDocs, addDoc, onSnapshot, query, orderBy } from "firebase/firestore"; // Ensure addDoc and onSnapshot are imported
 import { useAuth } from "../../contexts/authContext";
 
 const Task = () => {
@@ -11,10 +11,10 @@ const Task = () => {
   const { currentUser } = useAuth();
 
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
-
+  const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
   // Use real-time listener to listen for changes in the tasks collection
   useEffect(() => {
-    const unsubscribe = onSnapshot(collectionRef, (snapshot) => {
+    const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
       const tasksData = snapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,
@@ -24,7 +24,7 @@ const Task = () => {
 
     // Clean up the listener on component unmount
     return () => unsubscribe();
-  }, [collectionRef]);
+  }, [tasksQuery]);
 
   async function addTask(taskContent) {
     if (!taskContent.trim()) {
