@@ -71,7 +71,11 @@ const Task = () => {
 
   const updateTask = async () => {
     try {
-      const taskDocument = doc(db, `users/${currentUser.uid}/tasks`, currentTaskId);
+      const taskDocument = doc(
+        db,
+        `users/${currentUser.uid}/tasks`,
+        currentTaskId
+      );
       await updateDoc(taskDocument, {
         taskName: updatedTask,
       });
