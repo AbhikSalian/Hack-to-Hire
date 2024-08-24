@@ -145,7 +145,7 @@ const Task = () => {
                 <div key={id} className="todo-list">
                   <div className="todo-item">
                     <hr />
-                    <span>
+                    <span className={`${isChecked===true ? 'done' : ''}`}>
                       <div className="checker">
                         <span>
                           <input
