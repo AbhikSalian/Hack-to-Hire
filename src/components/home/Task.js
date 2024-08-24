@@ -18,7 +18,7 @@ const Task = () => {
   const [tasks, setTasks] = useState([]);
   const [updatedTask, setUpdatedTask] = useState("");
   const [currentTaskId, setCurrentTaskId] = useState(null); // For tracking the task to be edited
-
+  const [checked, setChecked] = useState([]);
   const { currentUser } = useAuth();
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
   const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
@@ -31,6 +31,7 @@ const Task = () => {
         id: doc.id,
       }));
       setTasks(tasksData);
+      setChecked(tasksData);
     });
 
     // Clean up the listener on component unmount
@@ -86,7 +87,45 @@ const Task = () => {
       console.log(e);
     }
   };
+  // const checkBoxHandler = async (event) => {
+    // setChecked((state) => {
+    //   const index = state.findIndex(
+    //     (checkbox) => checkbox.id.toString() === event.target.name
+    //   );
+    //   let newState = state.slice();
+    //   newState.splice(index, 1, {
+    //     ...state[index],
+    //     isChecked: !state[index]?.isChecked,
+    //   });
+    //   setTasks(newState);
+    //   return newState;
+    // });
 
+  // };
+  const checkBoxHandler = async (event) => {
+    event.preventDefault();
+    const taskId = event.target.name;
+    const isTaskChecked = event.target.checked;
+  
+    // Update the checked status in Firestore
+    try {
+      const taskDocRef = doc(db, `users/${currentUser.uid}/tasks/${taskId}`);
+      await updateDoc(taskDocRef, {
+        isChecked: isTaskChecked,
+      });
+  
+      // Update the local state after successful update in Firestore
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, isChecked: isTaskChecked } : task
+        )
+      );
+    } catch (error) {
+      console.error("Error updating task checkbox: ", error);
+    }
+  };
+  
+  // console.log("taskss",tasks);
   return (
     <>
       <div className="container">
@@ -102,14 +141,19 @@ const Task = () => {
                 Add Task
               </button>
 
-              {tasks.map(({ taskName, id }) => (
+              {tasks.map(({ taskName, id, isChecked }) => (
                 <div key={id} className="todo-list">
                   <div className="todo-item">
                     <hr />
                     <span>
                       <div className="checker">
                         <span>
-                          <input type="checkbox" />
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(event) => checkBoxHandler(event)}
+                            name={id}
+                          />
                         </span>
                       </div>
                       &nbsp;{taskName}
