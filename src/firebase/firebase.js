@@ -26,15 +26,23 @@ import { getFirestore } from "firebase/firestore";
 //   messagingSenderId: "26997091343",
 //   appId: "1:26997091343:web:c4c4ffa39ecfbae720077a"
 // };
-const firebaseConfig = {
-  apiKey: "AIzaSyC47t9re6uhwc_bGqaqFBzdUeM2mk-R360",
-  authDomain: "task-manager-app-e2dab.firebaseapp.com",
-  projectId: "task-manager-app-e2dab",
-  storageBucket: "task-manager-app-e2dab.appspot.com",
-  messagingSenderId: "334558603716",
-  appId: "1:334558603716:web:9feaa911a8844c43fb9c91"
-};
+// const firebaseConfig = {
+//   apiKey: "AIzaSyC47t9re6uhwc_bGqaqFBzdUeM2mk-R360",
+//   authDomain: "task-manager-app-e2dab.firebaseapp.com",
+//   projectId: "task-manager-app-e2dab",
+//   storageBucket: "task-manager-app-e2dab.appspot.com",
+//   messagingSenderId: "334558603716",
+//   appId: "1:334558603716:web:9feaa911a8844c43fb9c91"
+// };
 
+const firebaseConfig = {
+  apiKey: "AIzaSyA3LDrI6sbyv2enuLUz9Y8I91WC5kGkVBE",
+  authDomain: "task-manager-application-b016b.firebaseapp.com",
+  projectId: "task-manager-application-b016b",
+  storageBucket: "task-manager-application-b016b.appspot.com",
+  messagingSenderId: "961920185063",
+  appId: "1:961920185063:web:75f1fa6c86b25133f46842"
+};
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);

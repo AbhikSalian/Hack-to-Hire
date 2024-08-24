@@ -11,7 +11,7 @@ const Home = () => {
                 <h2 className="card-title">
                     Hello, {currentUser.displayName ? currentUser.displayName : currentUser.email}!
                 </h2>
-                <p className="lead">You are now logged in.</p>
+                <p className="lead">Never miss a deadline!</p>
                 <hr />
                 <Task />
             </div>

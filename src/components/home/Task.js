@@ -149,7 +149,15 @@ const Task = () => {
 
                 return (
                   <div key={id} className="todo-list">
-                    <div className={`todo-item ${isPastDue ? ((isPastDue===new Date())? 'today-due' : 'past-due') : ""}`}>
+                    <div
+                      className={`todo-item ${
+                        isPastDue
+                          ? isPastDue === new Date()
+                            ? "today-due"
+                            : "past-due"
+                          : ""
+                      }`}
+                    >
                       <hr />
                       <span className={`${isChecked ? "done" : ""}`}>
                         <div className="checker">
@@ -164,7 +172,10 @@ const Task = () => {
                         </div>
                         &nbsp;{taskName}
                         <br />
-                        Due date (YYYY/MM/DD): {completeBy}
+                        <br />
+                          <small className="text-muted">
+                            Due date: {new Date(completeBy).toLocaleDateString()}
+                          </small>
                       </span>
                       <span className="float-end mx-3">
                         <button
