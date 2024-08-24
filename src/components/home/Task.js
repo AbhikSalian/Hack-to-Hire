@@ -53,7 +53,12 @@ const Task = () => {
       });
 
       setTasks((prevTasks) => [
-        { taskName: taskContent, id: docRef.id, isChecked: false, completeBy: cDate },
+        {
+          taskName: taskContent,
+          id: docRef.id,
+          isChecked: false,
+          completeBy: cDate,
+        },
         ...prevTasks,
       ]);
 
@@ -88,7 +93,7 @@ const Task = () => {
       );
       await updateDoc(taskDocument, {
         taskName: updatedTask,
-        completeBy: updatedDate
+        completeBy: updatedDate,
       });
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
@@ -143,7 +148,7 @@ const Task = () => {
                 <div key={id} className="todo-list">
                   <div className="todo-item">
                     <hr />
-                    <span className={`${isChecked ? 'done' : ''}`}>
+                    <span className={`${isChecked ? "done" : ""}`}>
                       <div className="checker">
                         <span>
                           <input
@@ -154,7 +159,9 @@ const Task = () => {
                           />
                         </span>
                       </div>
-                      &nbsp;{taskName}<br />Due date (YYYY/MM/DD): {completeBy}
+                      &nbsp;{taskName}
+                      <br />
+                      Due date (YYYY/MM/DD): {completeBy}
                     </span>
                     <span className="float-end mx-3">
                       <button
