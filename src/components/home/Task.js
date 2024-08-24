@@ -1,14 +1,24 @@
 import "../../index.css";
 import { db } from "../../firebase/firebase";
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, addDoc, onSnapshot, query, orderBy } from "firebase/firestore"; // Ensure addDoc and onSnapshot are imported
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  deleteDoc,
+} from "firebase/firestore"; // Ensure addDoc and onSnapshot are imported
 import { useAuth } from "../../contexts/authContext";
-
+import EditTask from "./EditTask";
 const Task = () => {
-  
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const { currentUser } = useAuth();
+  const [updatedTask, SetUpdatedTask] = useState(task);
 
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
   const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
@@ -36,6 +46,7 @@ const Task = () => {
         taskName: taskContent,
         createdAt: new Date(),
         status: "pending",
+        isChecked: false,
       });
 
       // No need to re-fetch tasks, as the real-time listener will automatically update the tasks state
@@ -45,13 +56,44 @@ const Task = () => {
     }
   }
 
+  const deleteTask = async (id) => {
+    const confirmation = window.confirm(
+      "Are you sure you want to delete this task?"
+    );
+    if (confirmation) {
+      try {
+        const taskDocRef = doc(db, `users/${currentUser.uid}/tasks/${id}`);
+        await deleteDoc(taskDocRef);
+      } catch (error) {
+        console.error("Error deleting task: ", error);
+      }
+    }
+  };
+
+  const updateTask = async (taskId) => {
+    taskId.preventDefault();
+    try {
+      const taskDocument = doc(db, `users/${currentUser.uid}/tasks`, taskId);
+      await updateDoc(taskDocument, {
+        taskName: updatedTask,
+      });
+      window.location.reload();
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <>
       <div className="container">
         <div className="row col-md-12">
           <div className="card card-white">
             <div className="card-body">
-              <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#exampleModal1"
+              >
                 Add Task
               </button>
 
@@ -68,11 +110,20 @@ const Task = () => {
                       &nbsp;{taskName}
                     </span>
                     <span className="float-end mx-3">
-                      <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#exampleModal2"
+                      >
                         Edit
                       </button>
                     </span>
-                    <button type="button" className="btn btn-danger float-end">
+                    <button
+                      onClick={() => deleteTask(id)}
+                      type="button"
+                      className="btn btn-danger float-end"
+                    >
                       Delete
                     </button>
                   </div>
@@ -84,66 +135,115 @@ const Task = () => {
       </div>
 
       {/* modal */}
-      <div className="modal fade" id="exampleModal1" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div
+        className="modal fade"
+        id="exampleModal1"
+        tabIndex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">Add New Task</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h1 className="modal-title fs-5" id="exampleModalLabel">
+                Add New Task
+              </h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
             <div className="modal-body">
-              <form className="d-flex"
+              <form
+                className="d-flex"
                 onSubmit={(e) => {
                   e.preventDefault();
                   addTask(task);
                   setTask("");
                 }}
               >
-                <input className="form-control"
-                  type="text" placeholder="Enter the task"
+                <input
+                  className="form-control"
+                  type="text"
+                  placeholder="Enter the task"
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
                 />
                 <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
-            </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    data-bs-dismiss="modal"
+                  >
+                    Add task
+                  </button>
+                </div>
               </form>
             </div>
-            
           </div>
         </div>
       </div>
 
-
       {/* modal */}
-      <div className="modal fade" id="exampleModal2" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div
+        className="modal fade"
+        id="exampleModal2"
+        tabIndex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
         <div className="modal-dialog">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Task</h1>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h1 className="modal-title fs-5" id="exampleModalLabel">
+                Edit Task
+              </h1>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
             <div className="modal-body">
-              <form className="d-flex"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  addTask(task);
-                  setTask("");
-                }}
-              >
-                <input className="form-control"
-                  type="text" placeholder="Enter the task"
-                  value={task}
-                  onChange={(e) => setTask(e.target.value)}
+              <form className="d-flex">
+                <input
+                  className="form-control"
+                  type="text"
+                  placeholder="Enter the task"
+                  defaultValue={updatedTask}
+                  onChange={(e) => {
+                    SetUpdatedTask(e.target.value);
+                  }}
                 />
                 <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
-            </div>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => updateTask(updatedTask)}
+                    type="submit"
+                    className="btn btn-primary"
+                    data-bs-dismiss="modal"
+                  >
+                    Save changes
+                  </button>
+                </div>
               </form>
             </div>
-            
           </div>
         </div>
       </div>
