@@ -12,6 +12,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
   const { userLoggedIn } = useAuth();
 
   async function addUserToFirestore(user) {
@@ -30,8 +31,7 @@ const Register = () => {
   const onSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert(`Passwords don't match`);
-      window.location.reload();
+      setErrorMessage("Passwords do not match");
     } else {
       if (!isRegistering) {
         setIsRegistering(true);
@@ -42,9 +42,10 @@ const Register = () => {
           );
           const user = userCredential.user;
           await addUserToFirestore(user);
+          navigate("/home");
         } catch (e) {
-          alert(e.message);
-          window.location.reload();
+          setErrorMessage(e.message);
+          setIsRegistering(false);
         }
       }
     }
@@ -52,84 +53,82 @@ const Register = () => {
 
   return (
     <>
-      {userLoggedIn && <Navigate to="/home" replace={true} />}
+      {userLoggedIn && <Navigate to={"/home"} replace={true} />}
 
-      <main className="w-full h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-          <div className="text-center">
-            <h3 className="text-2xl font-semibold text-gray-800">
-              Create a New Account
-            </h3>
-          </div>
-          <form onSubmit={onSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-600">
+      <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+        <div className="card shadow-lg p-4 border-0">
+          <h3 className="card-title text-center mb-4">Create a New Account</h3>
+          <form onSubmit={onSubmit}>
+            <div className="mb-3">
+              <label htmlFor="email" className="form-label">
                 Email
               </label>
               <input
                 type="email"
-                autoComplete="email"
+                id="email"
+                className="form-control"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-gray-600">
+            <div className="mb-3">
+              <label htmlFor="password" className="form-label">
                 Password
               </label>
               <input
-                disabled={isRegistering}
                 type="password"
-                autoComplete="new-password"
+                id="password"
+                className="form-control"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                disabled={isRegistering}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-gray-600">
+            <div className="mb-3">
+              <label htmlFor="confirmPassword" className="form-label">
                 Confirm Password
               </label>
               <input
-                disabled={isRegistering}
                 type="password"
-                autoComplete="off"
+                id="confirmPassword"
+                className="form-control"
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                disabled={isRegistering}
               />
             </div>
 
             {errorMessage && (
-              <span className="block text-red-600 font-bold">{errorMessage}</span>
+              <div className="alert alert-danger" role="alert">
+                {errorMessage}
+              </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isRegistering}
-              className={`w-full py-2 text-white font-semibold rounded-lg transition duration-300 ${
-                isRegistering
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-lg"
-              }`}
-            >
-              {isRegistering ? "Signing Up..." : "Sign Up"}
-            </button>
-            <div className="text-center text-sm">
+            <div className="d-grid">
+              <button
+                type="submit"
+                className={`btn btn-primary ${
+                  isRegistering ? "disabled" : ""
+                }`}
+              >
+                {isRegistering ? "Signing Up..." : "Sign Up"}
+              </button>
+            </div>
+
+            <div className="text-center mt-3">
               Already have an account?{" "}
-              <Link to="/login" className="font-bold text-indigo-600 hover:underline">
+              <Link to="/login" className="text-decoration-none">
                 Log In
               </Link>
             </div>
           </form>
         </div>
-      </main>
+      </div>
     </>
   );
 };

@@ -8,11 +8,11 @@ const Header = () => {
   const { userLoggedIn } = useAuth();
 
   return (
-    <nav className="navbar navbar-expand-lg bg-body-tertiary">
-      <div className="container-fluid">
-        <a className="navbar-brand" href="#">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm navbg">
+      <div className="container-fluid navbg">
+        <Link className="navbar-brand" to="/">
           Task Manager
-        </a>
+        </Link>
         <button
           className="navbar-toggler"
           type="button"
@@ -26,29 +26,33 @@ const Header = () => {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
-            <li className="nav-item">
-              {userLoggedIn ? (
+            {userLoggedIn ? (
+              <li className="nav-item">
                 <button
                   onClick={() => {
                     doSignOut().then(() => {
                       navigate('/login');
                     });
                   }}
-                  className="btn btn-link nav-link"
+                  className="btn btn-outline-danger ms-2"
                 >
                   Logout
                 </button>
-              ) : (
-                <>
-                  <Link className="nav-link" to={'/login'}>
+              </li>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link className="btn btn-outline-primary ms-2" to="/login">
                     Login
                   </Link>
-                  <Link className="nav-link" to={'/register'}>
+                </li>
+                <li className="nav-item">
+                  <Link className="btn btn-outline-primary ms-2" to="/register">
                     Register
                   </Link>
-                </>
-              )}
-            </li>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>
