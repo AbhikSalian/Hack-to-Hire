@@ -216,25 +216,37 @@ const Task = () => {
             </div>
             <div className="modal-body">
               <form
-                className="d-flex"
                 onSubmit={(e) => {
                   e.preventDefault();
                   addTask(task, cDate);
                 }}
               >
-                <input
-                  className="form-control"
-                  type="text"
-                  placeholder="Enter the task"
-                  value={task}
-                  onChange={(e) => setTask(e.target.value)}
-                />
-                <input
-                  type="date"
-                  placeholder="Enter due date"
-                  value={cDate}
-                  onChange={(e) => setDate(e.target.value)}
-                />
+                <div className="mb-3">
+                  <label htmlFor="taskInput" className="form-label">
+                    Task Name
+                  </label>
+                  <input
+                    id="taskInput"
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter the task"
+                    value={task}
+                    onChange={(e) => setTask(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="dateInput" className="form-label">
+                    Due Date
+                  </label>
+                  <input
+                    id="dateInput"
+                    className="form-control"
+                    type="date"
+                    placeholder="Enter due date"
+                    value={cDate}
+                    onChange={(e) => setDate(e.target.value)}
+                  />
+                </div>
                 <div className="modal-footer">
                   <button
                     type="button"
@@ -279,20 +291,38 @@ const Task = () => {
               ></button>
             </div>
             <div className="modal-body">
-              <form className="d-flex">
-                <input
-                  className="form-control"
-                  type="text"
-                  placeholder="Enter the task"
-                  value={updatedTask}
-                  onChange={(e) => setUpdatedTask(e.target.value)}
-                />
-                <input
-                  type="date"
-                  placeholder="Enter due date"
-                  value={updatedDate}
-                  onChange={(e) => setUpdatedDate(e.target.value)}
-                />
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  updateTask();
+                }}
+              >
+                <div className="mb-3">
+                  <label htmlFor="updatedTaskInput" className="form-label">
+                    Task Name
+                  </label>
+                  <input
+                    id="updatedTaskInput"
+                    className="form-control"
+                    type="text"
+                    placeholder="Enter the task"
+                    value={updatedTask}
+                    onChange={(e) => setUpdatedTask(e.target.value)}
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="updatedDateInput" className="form-label">
+                    Due Date
+                  </label>
+                  <input
+                    id="updatedDateInput"
+                    className="form-control"
+                    type="date"
+                    placeholder="Enter due date"
+                    value={updatedDate}
+                    onChange={(e) => setUpdatedDate(e.target.value)}
+                  />
+                </div>
                 <div className="modal-footer">
                   <button
                     type="button"
@@ -302,10 +332,6 @@ const Task = () => {
                     Close
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      updateTask();
-                    }}
                     type="submit"
                     className="btn btn-primary"
                     data-bs-dismiss="modal"
