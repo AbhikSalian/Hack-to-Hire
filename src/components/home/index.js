@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../contexts/authContext';
 import Task from './Task';
-import EditTask from './EditTask';
 const Home = () => {
     const { currentUser } = useAuth()
     return (
