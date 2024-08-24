@@ -72,7 +72,11 @@ const Task = () => {
 
   const updateTask = async () => {
     try {
-      const taskDocument = doc(db, `users/${currentUser.uid}/tasks`, currentTaskId);
+      const taskDocument = doc(
+        db,
+        `users/${currentUser.uid}/tasks`,
+        currentTaskId
+      );
       await updateDoc(taskDocument, {
         taskName: updatedTask,
       });
@@ -236,7 +240,10 @@ const Task = () => {
                     Close
                   </button>
                   <button
-                    onClick={updateTask}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      updateTask();
+                    }}
                     type="submit"
                     className="btn btn-primary"
                     data-bs-dismiss="modal"
