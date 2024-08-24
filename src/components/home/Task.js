@@ -5,9 +5,7 @@ import {
   collection,
   addDoc,
   updateDoc,
-  onSnapshot,
-  query,
-  orderBy,
+  getDocs,
   doc,
   deleteDoc,
 } from "firebase/firestore";
@@ -17,40 +15,47 @@ const Task = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const [updatedTask, setUpdatedTask] = useState("");
-  const [currentTaskId, setCurrentTaskId] = useState(null); // For tracking the task to be edited
-  // const [checked, setChecked] = useState([]);
-  const [cDate,setDate] = useState("");
+  const [updatedDate, setUpdatedDate] = useState("");
+  const [currentTaskId, setCurrentTaskId] = useState(null);
+  const [cDate, setDate] = useState("");
   const { currentUser } = useAuth();
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
-  const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
 
-  // Use real-time listener to listen for changes in the tasks collection
+  // Fetch tasks when the component mounts
   useEffect(() => {
-    const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
-      const tasksData = snapshot.docs.map((doc) => ({
-        ...doc.data(),
-        id: doc.id,
-      }));
-      setTasks(tasksData);
-      // setChecked(tasksData);
-    });
+    const fetchTasks = async () => {
+      try {
+        const querySnapshot = await getDocs(collectionRef);
+        const tasksData = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setTasks(tasksData);
+      } catch (error) {
+        console.error("Error fetching tasks: ", error);
+      }
+    };
 
-    // Clean up the listener on component unmount
-    return () => unsubscribe();
-  }, [tasksQuery]);
+    fetchTasks();
+  }, [collectionRef]);
 
-  async function addTask(taskContent,cDate) {
+  async function addTask(taskContent, cDate) {
     if (!taskContent.trim()) {
       return; // Prevent adding empty tasks
     }
     try {
-      await addDoc(collectionRef, {
+      const docRef = await addDoc(collectionRef, {
         taskName: taskContent,
         createdAt: new Date(),
         status: "pending",
         isChecked: false,
-        completeBy: cDate
+        completeBy: cDate,
       });
+
+      setTasks((prevTasks) => [
+        { taskName: taskContent, id: docRef.id, isChecked: false, completeBy: cDate },
+        ...prevTasks,
+      ]);
 
       setTask(""); // Clear the input field after adding the task
       setDate("");
@@ -67,6 +72,7 @@ const Task = () => {
       try {
         const taskDocRef = doc(db, `users/${currentUser.uid}/tasks/${id}`);
         await deleteDoc(taskDocRef);
+        setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
       } catch (error) {
         console.error("Error deleting task: ", error);
       }
@@ -82,41 +88,32 @@ const Task = () => {
       );
       await updateDoc(taskDocument, {
         taskName: updatedTask,
+        completeBy: updatedDate
       });
-      setCurrentTaskId(null); // Clear the current task ID after update
-      setUpdatedTask(""); // Clear the updated task after update
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === currentTaskId ? { ...task, taskName: updatedTask } : task
+        )
+      );
+      setCurrentTaskId(null);
+      setUpdatedTask("");
+      setUpdatedDate("");
     } catch (e) {
       console.log(e);
     }
   };
-  // const checkBoxHandler = async (event) => {
-    // setChecked((state) => {
-    //   const index = state.findIndex(
-    //     (checkbox) => checkbox.id.toString() === event.target.name
-    //   );
-    //   let newState = state.slice();
-    //   newState.splice(index, 1, {
-    //     ...state[index],
-    //     isChecked: !state[index]?.isChecked,
-    //   });
-    //   setTasks(newState);
-    //   return newState;
-    // });
 
-  // };
   const checkBoxHandler = async (event) => {
     event.preventDefault();
     const taskId = event.target.name;
     const isTaskChecked = event.target.checked;
-  
-    // Update the checked status in Firestore
+
     try {
       const taskDocRef = doc(db, `users/${currentUser.uid}/tasks/${taskId}`);
       await updateDoc(taskDocRef, {
         isChecked: isTaskChecked,
       });
-  
-      // Update the local state after successful update in Firestore
+
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === taskId ? { ...task, isChecked: isTaskChecked } : task
@@ -126,8 +123,7 @@ const Task = () => {
       console.error("Error updating task checkbox: ", error);
     }
   };
-  
-  // console.log("taskss",tasks);
+
   return (
     <>
       <div className="container">
@@ -143,11 +139,11 @@ const Task = () => {
                 Add Task
               </button>
 
-              {tasks.map(({ taskName, id, isChecked,completeBy}) => (
+              {tasks.map(({ taskName, id, isChecked, completeBy }) => (
                 <div key={id} className="todo-list">
                   <div className="todo-item">
                     <hr />
-                    <span className={`${isChecked===true ? 'done' : ''}`}>
+                    <span className={`${isChecked ? 'done' : ''}`}>
                       <div className="checker">
                         <span>
                           <input
@@ -158,7 +154,7 @@ const Task = () => {
                           />
                         </span>
                       </div>
-                      &nbsp;{taskName}<br/>Due date (YYYY/MM/DD): {completeBy}
+                      &nbsp;{taskName}<br />Due date (YYYY/MM/DD): {completeBy}
                     </span>
                     <span className="float-end mx-3">
                       <button
@@ -167,8 +163,9 @@ const Task = () => {
                         data-bs-toggle="modal"
                         data-bs-target="#exampleModal2"
                         onClick={() => {
-                          setCurrentTaskId(id); // Set the current task ID for editing
-                          setUpdatedTask(taskName); // Pre-fill the modal with the current task name
+                          setCurrentTaskId(id);
+                          setUpdatedTask(taskName);
+                          setUpdatedDate(completeBy);
                         }}
                       >
                         Edit
@@ -215,7 +212,7 @@ const Task = () => {
                 className="d-flex"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  addTask(task,cDate);
+                  addTask(task, cDate);
                 }}
               >
                 <input
@@ -224,9 +221,13 @@ const Task = () => {
                   placeholder="Enter the task"
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
-                /><input type="date" placeholder="Enter due date" 
-                value={cDate} onChange={(e) => setDate(e.target.value)}
-/>
+                />
+                <input
+                  type="date"
+                  placeholder="Enter due date"
+                  value={cDate}
+                  onChange={(e) => setDate(e.target.value)}
+                />
                 <div className="modal-footer">
                   <button
                     type="button"
@@ -276,8 +277,14 @@ const Task = () => {
                   className="form-control"
                   type="text"
                   placeholder="Enter the task"
-                  value={updatedTask} // Use the updated task value
+                  value={updatedTask}
                   onChange={(e) => setUpdatedTask(e.target.value)}
+                />
+                <input
+                  type="date"
+                  placeholder="Enter due date"
+                  value={updatedDate}
+                  onChange={(e) => setUpdatedDate(e.target.value)}
                 />
                 <div className="modal-footer">
                   <button
