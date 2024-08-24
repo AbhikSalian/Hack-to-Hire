@@ -18,7 +18,8 @@ const Task = () => {
   const [tasks, setTasks] = useState([]);
   const [updatedTask, setUpdatedTask] = useState("");
   const [currentTaskId, setCurrentTaskId] = useState(null); // For tracking the task to be edited
-  const [checked, setChecked] = useState([]);
+  // const [checked, setChecked] = useState([]);
+  const [cDate,setDate] = useState("");
   const { currentUser } = useAuth();
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
   const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
@@ -31,27 +32,28 @@ const Task = () => {
         id: doc.id,
       }));
       setTasks(tasksData);
-      setChecked(tasksData);
+      // setChecked(tasksData);
     });
 
     // Clean up the listener on component unmount
     return () => unsubscribe();
   }, [tasksQuery]);
 
-  async function addTask(taskContent) {
+  async function addTask(taskContent,cDate) {
     if (!taskContent.trim()) {
       return; // Prevent adding empty tasks
     }
-
     try {
       await addDoc(collectionRef, {
         taskName: taskContent,
         createdAt: new Date(),
         status: "pending",
         isChecked: false,
+        completeBy: cDate
       });
 
       setTask(""); // Clear the input field after adding the task
+      setDate("");
     } catch (error) {
       console.error("Error adding task: ", error);
     }
@@ -141,7 +143,7 @@ const Task = () => {
                 Add Task
               </button>
 
-              {tasks.map(({ taskName, id, isChecked }) => (
+              {tasks.map(({ taskName, id, isChecked,completeBy}) => (
                 <div key={id} className="todo-list">
                   <div className="todo-item">
                     <hr />
@@ -156,7 +158,7 @@ const Task = () => {
                           />
                         </span>
                       </div>
-                      &nbsp;{taskName}
+                      &nbsp;{taskName}<br/>Due date (YYYY/MM/DD): {completeBy}
                     </span>
                     <span className="float-end mx-3">
                       <button
@@ -213,7 +215,7 @@ const Task = () => {
                 className="d-flex"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  addTask(task);
+                  addTask(task,cDate);
                 }}
               >
                 <input
@@ -222,7 +224,9 @@ const Task = () => {
                   placeholder="Enter the task"
                   value={task}
                   onChange={(e) => setTask(e.target.value)}
-                />
+                /><input type="date" placeholder="Enter due date" 
+                value={cDate} onChange={(e) => setDate(e.target.value)}
+/>
                 <div className="modal-footer">
                   <button
                     type="button"
