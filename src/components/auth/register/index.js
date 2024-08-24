@@ -3,7 +3,14 @@ import { Navigate, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../contexts/authContext";
 import { doCreateUserWithEmailAndPassword } from "../../../firebase/auth";
 import { db } from "../../../firebase/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+} from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 const Register = () => {
   const navigate = useNavigate();
@@ -43,14 +50,26 @@ const Register = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!isRegistering) {
-      setIsRegistering(true);
-      const userCredential = await doCreateUserWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      
-         await addUserToFirestore(user);
-       
-      // createUserDocument(user);
+    if (password !== confirmPassword) {
+      alert(`Passwords don't match`);
+      window.location.reload();
+    } else {
+      if (!isRegistering) {
+        setIsRegistering(true);
+        try {
+          const userCredential = await doCreateUserWithEmailAndPassword(
+            email,
+            password
+          );
+          const user = userCredential.user;
+
+          await addUserToFirestore(user);
+          // createUserDocument(user);
+        } catch (e) {
+          alert(e);
+          window.location.reload();
+        }
+      }
     }
   };
 

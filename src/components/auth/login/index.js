@@ -4,7 +4,14 @@ import {
   doSignInWithEmailAndPassword,
   doSignInWithGoogle,
 } from "../../../firebase/auth";
-import { doc, setDoc, getDocs, collection, query, where } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDocs,
+  collection,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "../../../firebase/firebase";
 import { useAuth } from "../../../contexts/authContext";
 const Login = () => {
@@ -19,8 +26,13 @@ const Login = () => {
     e.preventDefault();
     if (!isSigningIn) {
       setIsSigningIn(true);
-      await doSignInWithEmailAndPassword(email, password);
-      // doSendEmailVerification()
+      try {
+        await doSignInWithEmailAndPassword(email, password);
+        // doSendEmailVerification()
+      } catch (e) {
+        alert(e);
+        window.location.reload();
+      }
     }
   };
 
@@ -28,7 +40,7 @@ const Login = () => {
     e.preventDefault();
     if (!isSigningIn) {
       setIsSigningIn(true);
-      var user= doSignInWithGoogle().catch(async (err) => {
+      var user = doSignInWithGoogle().catch(async (err) => {
         setIsSigningIn(false);
         const usersRef = collection(db, "users");
         const q = query(usersRef, where("email", "==", user.email));
@@ -36,19 +48,18 @@ const Login = () => {
 
         if (!querySnapshot.empty) {
           doSignInWithGoogle();
-        }
-        else{
+        } else {
           try {
-          // Create a document in the 'users' collection with the user's UID as the document ID
-          await setDoc(doc(db, "users", user.uid), {
-            email: user.email,
-            displayName: user.displayName || "Anonymous", // You can add more fields as needed
-            createdAt: new Date(),
-          });
-          console.log("User added to Firestore successfully.");
-        } catch (error) {
-          console.error("Error adding user to Firestore: ", error);
-        }
+            // Create a document in the 'users' collection with the user's UID as the document ID
+            await setDoc(doc(db, "users", user.uid), {
+              email: user.email,
+              displayName: user.displayName || "Anonymous", // You can add more fields as needed
+              createdAt: new Date(),
+            });
+            console.log("User added to Firestore successfully.");
+          } catch (error) {
+            console.error("Error adding user to Firestore: ", error);
+          }
         }
       });
     }
@@ -122,10 +133,10 @@ const Login = () => {
           </p>
           <div className="flex flex-row text-center w-full">
             <div className="border-b-2 mb-2.5 mr-2 w-full"></div>
-            <div className="text-sm font-bold w-fit">OR</div>
+            {/* <div className="text-sm font-bold w-fit">OR</div> */}
             <div className="border-b-2 mb-2.5 ml-2 w-full"></div>
           </div>
-          <button
+          {/* <button
             disabled={isSigningIn}
             onClick={(e) => {
               onGoogleSignIn(e);
@@ -137,7 +148,7 @@ const Login = () => {
             }`}
           >
             google logo
-            {/* <svg
+            <svg
               className="w-5 h-5"
               viewBox="0 0 48 48"
               fill="none"
@@ -166,9 +177,9 @@ const Login = () => {
                   <rect width="48" height="48" fill="white" />
                 </clipPath>
               </defs>
-            </svg> */}
+            </svg>
             {isSigningIn ? "Signing In..." : "Continue with Google"}
-          </button>
+          </button> */}
         </div>
       </main>
     </div>
