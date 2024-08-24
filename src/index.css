@@ -23,3 +23,10 @@ div.checker{
 .done{
     text-decoration: line-through;
 }
+.past-due {
+    color: red;
+  }
+  .today-due{
+    color:orange;
+  }
+  

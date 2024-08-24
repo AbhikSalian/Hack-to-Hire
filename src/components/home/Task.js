@@ -144,50 +144,54 @@ const Task = () => {
                 Add Task
               </button>
 
-              {tasks.map(({ taskName, id, isChecked, completeBy }) => (
-                <div key={id} className="todo-list">
-                  <div className="todo-item">
-                    <hr />
-                    <span className={`${isChecked ? "done" : ""}`}>
-                      <div className="checker">
-                        <span>
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(event) => checkBoxHandler(event)}
-                            name={id}
-                          />
-                        </span>
-                      </div>
-                      &nbsp;{taskName}
-                      <br />
-                      Due date (YYYY/MM/DD): {completeBy}
-                    </span>
-                    <span className="float-end mx-3">
+              {tasks.map(({ taskName, id, isChecked, completeBy }) => {
+                const isPastDue = new Date(completeBy) < new Date();
+
+                return (
+                  <div key={id} className="todo-list">
+                    <div className={`todo-item ${isPastDue ? ((isPastDue===new Date())? 'today-due' : 'past-due') : ""}`}>
+                      <hr />
+                      <span className={`${isChecked ? "done" : ""}`}>
+                        <div className="checker">
+                          <span>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(event) => checkBoxHandler(event)}
+                              name={id}
+                            />
+                          </span>
+                        </div>
+                        &nbsp;{taskName}
+                        <br />
+                        Due date (YYYY/MM/DD): {completeBy}
+                      </span>
+                      <span className="float-end mx-3">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#exampleModal2"
+                          onClick={() => {
+                            setCurrentTaskId(id);
+                            setUpdatedTask(taskName);
+                            setUpdatedDate(completeBy);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </span>
                       <button
+                        onClick={() => deleteTask(id)}
                         type="button"
-                        className="btn btn-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#exampleModal2"
-                        onClick={() => {
-                          setCurrentTaskId(id);
-                          setUpdatedTask(taskName);
-                          setUpdatedDate(completeBy);
-                        }}
+                        className="btn btn-danger float-end"
                       >
-                        Edit
+                        Delete
                       </button>
-                    </span>
-                    <button
-                      onClick={() => deleteTask(id)}
-                      type="button"
-                      className="btn btn-danger float-end"
-                    >
-                      Delete
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
