@@ -13,13 +13,12 @@ import {
   deleteDoc,
 } from "firebase/firestore"; // Ensure addDoc and onSnapshot are imported
 import { useAuth } from "../../contexts/authContext";
-import EditTask from "./EditTask";
 const Task = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const { currentUser } = useAuth();
-  const [updatedTask, SetUpdatedTask] = useState(task);
-
+  const [updatedTask, setUpdatedTask] = useState(task);
+  const [currentTaskId, setCurrentTaskId] = useState(null);
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
   const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
   // Use real-time listener to listen for changes in the tasks collection
@@ -70,14 +69,14 @@ const Task = () => {
     }
   };
 
-  const updateTask = async (taskId) => {
-    taskId.preventDefault();
+  const updateTask = async () => {
     try {
-      const taskDocument = doc(db, `users/${currentUser.uid}/tasks`, taskId);
+      const taskDocument = doc(db, `users/${currentUser.uid}/tasks`, currentTaskId);
       await updateDoc(taskDocument, {
         taskName: updatedTask,
       });
-      window.location.reload();
+      setCurrentTaskId(null); // Clear the current task ID after update
+      setUpdatedTask("");
     } catch (e) {
       console.log(e);
     }
@@ -115,6 +114,10 @@ const Task = () => {
                         className="btn btn-primary"
                         data-bs-toggle="modal"
                         data-bs-target="#exampleModal2"
+                        onClick={() => {
+                          setCurrentTaskId(id); // Set the current task ID for editing
+                          setUpdatedTask(taskName); // Pre-fill the modal with the current task name
+                        }}
                       >
                         Edit
                       </button>
@@ -134,7 +137,7 @@ const Task = () => {
         </div>
       </div>
 
-      {/* modal */}
+      {/* Add task modal */}
       <div
         className="modal fade"
         id="exampleModal1"
@@ -193,7 +196,7 @@ const Task = () => {
         </div>
       </div>
 
-      {/* modal */}
+      {/* Edit task modal */}
       <div
         className="modal fade"
         id="exampleModal2"
@@ -220,9 +223,9 @@ const Task = () => {
                   className="form-control"
                   type="text"
                   placeholder="Enter the task"
-                  defaultValue={updatedTask}
+                  value={updatedTask}
                   onChange={(e) => {
-                    SetUpdatedTask(e.target.value);
+                    setUpdatedTask(e.target.value);
                   }}
                 />
                 <div className="modal-footer">
@@ -234,7 +237,7 @@ const Task = () => {
                     Close
                   </button>
                   <button
-                    onClick={() => updateTask(updatedTask)}
+                    onClick={() => updateTask}
                     type="submit"
                     className="btn btn-primary"
                     data-bs-dismiss="modal"
