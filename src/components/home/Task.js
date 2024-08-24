@@ -3,7 +3,6 @@ import { db } from "../../firebase/firebase";
 import React, { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
   addDoc,
   updateDoc,
   onSnapshot,
@@ -11,16 +10,19 @@ import {
   orderBy,
   doc,
   deleteDoc,
-} from "firebase/firestore"; // Ensure addDoc and onSnapshot are imported
+} from "firebase/firestore";
 import { useAuth } from "../../contexts/authContext";
+
 const Task = () => {
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
+  const [updatedTask, setUpdatedTask] = useState("");
+  const [currentTaskId, setCurrentTaskId] = useState(null); // For tracking the task to be edited
+
   const { currentUser } = useAuth();
-  const [updatedTask, setUpdatedTask] = useState(task);
-  const [currentTaskId, setCurrentTaskId] = useState(null);
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
   const tasksQuery = query(collectionRef, orderBy("createdAt", "desc"));
+
   // Use real-time listener to listen for changes in the tasks collection
   useEffect(() => {
     const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
@@ -48,7 +50,6 @@ const Task = () => {
         isChecked: false,
       });
 
-      // No need to re-fetch tasks, as the real-time listener will automatically update the tasks state
       setTask(""); // Clear the input field after adding the task
     } catch (error) {
       console.error("Error adding task: ", error);
@@ -71,20 +72,17 @@ const Task = () => {
 
   const updateTask = async () => {
     try {
-      const taskDocument = doc(
-        db,
-        `users/${currentUser.uid}/tasks`,
-        currentTaskId
-      );
+      const taskDocument = doc(db, `users/${currentUser.uid}/tasks`, currentTaskId);
       await updateDoc(taskDocument, {
         taskName: updatedTask,
       });
       setCurrentTaskId(null); // Clear the current task ID after update
-      setUpdatedTask("");
+      setUpdatedTask(""); // Clear the updated task after update
     } catch (e) {
       console.log(e);
     }
   };
+
   return (
     <>
       <div className="container">
@@ -141,7 +139,7 @@ const Task = () => {
         </div>
       </div>
 
-      {/* Add task modal */}
+      {/* Add Task Modal */}
       <div
         className="modal fade"
         id="exampleModal1"
@@ -168,7 +166,6 @@ const Task = () => {
                 onSubmit={(e) => {
                   e.preventDefault();
                   addTask(task);
-                  setTask("");
                 }}
               >
                 <input
@@ -200,7 +197,7 @@ const Task = () => {
         </div>
       </div>
 
-      {/* Edit task modal */}
+      {/* Edit Task Modal */}
       <div
         className="modal fade"
         id="exampleModal2"
@@ -227,10 +224,8 @@ const Task = () => {
                   className="form-control"
                   type="text"
                   placeholder="Enter the task"
-                  value={updatedTask}
-                  onChange={(e) => {
-                    setUpdatedTask(e.target.value);
-                  }}
+                  value={updatedTask} // Use the updated task value
+                  onChange={(e) => setUpdatedTask(e.target.value)}
                 />
                 <div className="modal-footer">
                   <button
@@ -241,7 +236,7 @@ const Task = () => {
                     Close
                   </button>
                   <button
-                    onClick={() => updateTask}
+                    onClick={updateTask}
                     type="submit"
                     className="btn btn-primary"
                     data-bs-dismiss="modal"
