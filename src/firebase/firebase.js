@@ -1,12 +1,17 @@
-// Import the functions you need from the SDKs you need
+// Import the functions needed from the Firebase SDKs
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration for your web app
+// Replace these with your Firebase project's configuration details
+// Note: Keep the API keys and other sensitive information secure
+
+// Uncomment and use the appropriate configuration as needed
+
+// Firebase configuration for the "hack-to-hire" project
 // const firebaseConfig = {
 //   apiKey: "AIzaSyC1DVW7IGdhaLe_mmpgPuFb2NZHRSWzGAs",
 //   authDomain: "hack-to-hire.firebaseapp.com",
@@ -17,7 +22,7 @@ import { getFirestore } from "firebase/firestore";
 //   measurementId: "G-LWZHJP2MRJ"
 // };
 
-// Your web app's Firebase configuration
+// Firebase configuration for the "task-manager-ce02f" project
 // const firebaseConfig = {
 //   apiKey: "AIzaSyA6sfdICEf8fbEoDh0I9Zu780zRBniYuNw",
 //   authDomain: "task-manager-ce02f.firebaseapp.com",
@@ -26,6 +31,8 @@ import { getFirestore } from "firebase/firestore";
 //   messagingSenderId: "26997091343",
 //   appId: "1:26997091343:web:c4c4ffa39ecfbae720077a"
 // };
+
+// Firebase configuration for the "task-manager-app-e2dab" project
 // const firebaseConfig = {
 //   apiKey: "AIzaSyC47t9re6uhwc_bGqaqFBzdUeM2mk-R360",
 //   authDomain: "task-manager-app-e2dab.firebaseapp.com",
@@ -35,16 +42,22 @@ import { getFirestore } from "firebase/firestore";
 //   appId: "1:334558603716:web:9feaa911a8844c43fb9c91"
 // };
 
+// Firebase configuration for the "task-manager-application-b016b" project
 const firebaseConfig = {
   apiKey: "AIzaSyA3LDrI6sbyv2enuLUz9Y8I91WC5kGkVBE",
   authDomain: "task-manager-application-b016b.firebaseapp.com",
   projectId: "task-manager-application-b016b",
   storageBucket: "task-manager-application-b016b.appspot.com",
   messagingSenderId: "961920185063",
-  appId: "1:961920185063:web:75f1fa6c86b25133f46842"
+  appId: "1:961920185063:web:75f1fa6c86b25133f46842",
 };
-// Initialize Firebase
+
+// Initialize Firebase with the provided configuration
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firestore database and Authentication services
 const db = getFirestore(app);
 const auth = getAuth(app);
-export{db,app,auth};
+
+// Export the initialized Firebase services for use in other parts of the application
+export { db, app, auth };

@@ -1,6 +1,11 @@
+// Importing necessary CSS and Firebase configurations
 import "../../index.css";
 import { db } from "../../firebase/firebase";
+
+// Importing React and necessary hooks
 import React, { useEffect, useState } from "react";
+
+// Importing Firebase Firestore functions
 import {
   collection,
   addDoc,
@@ -9,27 +14,37 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
+
+// Importing custom authentication context
 import { useAuth } from "../../contexts/authContext";
 
+// Defining the Task component
 const Task = () => {
+  // State for handling input task, list of tasks, and task updates
   const [task, setTask] = useState("");
   const [tasks, setTasks] = useState([]);
   const [updatedTask, setUpdatedTask] = useState("");
   const [updatedDate, setUpdatedDate] = useState("");
   const [currentTaskId, setCurrentTaskId] = useState(null);
   const [cDate, setDate] = useState("");
+
+  // Get the current user from authentication context
   const { currentUser } = useAuth();
+
+  // Reference to the Firestore collection for the current user's tasks
   const collectionRef = collection(db, `users/${currentUser.uid}/tasks`);
 
-  // Fetch tasks when the component mounts
+  // useEffect hook to fetch tasks when the component mounts
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const querySnapshot = await getDocs(collectionRef);
+        // Mapping fetched documents to task data including the task ID
         const tasksData = querySnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
         }));
+        // Setting fetched tasks to the state
         setTasks(tasksData);
       } catch (error) {
         console.error("Error fetching tasks: ", error);
@@ -39,11 +54,13 @@ const Task = () => {
     fetchTasks();
   }, [collectionRef]);
 
+  // Function to add a new task to the Firestore collection
   async function addTask(taskContent, cDate) {
     if (!taskContent.trim()) {
       return; // Prevent adding empty tasks
     }
     try {
+      // Adding the task document to Firestore
       const docRef = await addDoc(collectionRef, {
         taskName: taskContent,
         createdAt: new Date(),
@@ -52,6 +69,7 @@ const Task = () => {
         completeBy: cDate,
       });
 
+      // Updating the local state with the new task
       setTasks((prevTasks) => [
         {
           taskName: taskContent,
@@ -62,21 +80,26 @@ const Task = () => {
         ...prevTasks,
       ]);
 
-      setTask(""); // Clear the input field after adding the task
+      // Clear input fields after adding the task
+      setTask("");
       setDate("");
     } catch (error) {
       console.error("Error adding task: ", error);
     }
   }
 
+  // Function to delete a task from Firestore
   const deleteTask = async (id) => {
     const confirmation = window.confirm(
       "Are you sure you want to delete this task?"
     );
     if (confirmation) {
       try {
+        // Reference to the specific task document
         const taskDocRef = doc(db, `users/${currentUser.uid}/tasks/${id}`);
         await deleteDoc(taskDocRef);
+
+        // Update local state by removing the deleted task
         setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
       } catch (error) {
         console.error("Error deleting task: ", error);
@@ -84,8 +107,10 @@ const Task = () => {
     }
   };
 
+  // Function to update a task's details in Firestore
   const updateTask = async () => {
     try {
+      // Reference to the specific task document to be updated
       const taskDocument = doc(
         db,
         `users/${currentUser.uid}/tasks`,
@@ -95,11 +120,15 @@ const Task = () => {
         taskName: updatedTask,
         completeBy: updatedDate,
       });
+
+      // Updating the task in local state
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === currentTaskId ? { ...task, taskName: updatedTask } : task
         )
       );
+
+      // Resetting state after updating
       setCurrentTaskId(null);
       setUpdatedTask("");
       setUpdatedDate("");
@@ -108,17 +137,20 @@ const Task = () => {
     }
   };
 
+  // Function to handle checkbox state changes and update Firestore
   const checkBoxHandler = async (event) => {
     event.preventDefault();
     const taskId = event.target.name;
     const isTaskChecked = event.target.checked;
 
     try {
+      // Reference to the specific task document to be updated
       const taskDocRef = doc(db, `users/${currentUser.uid}/tasks/${taskId}`);
       await updateDoc(taskDocRef, {
         isChecked: isTaskChecked,
       });
 
+      // Update the task's checked state in local state
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === taskId ? { ...task, isChecked: isTaskChecked } : task
@@ -131,10 +163,12 @@ const Task = () => {
 
   return (
     <>
+      {/* Main container for the task management interface */}
       <div className="container">
         <div className="row col-md-12">
           <div className="card card-white">
             <div className="card-body">
+              {/* Button to trigger modal for adding a new task */}
               <button
                 type="button"
                 className="btn btn-primary"
@@ -144,6 +178,7 @@ const Task = () => {
                 Add Task
               </button>
 
+              {/* Rendering each task in the list */}
               {tasks.map(({ taskName, id, isChecked, completeBy }) => {
                 const isPastDue = new Date(completeBy) < new Date();
 
@@ -162,6 +197,7 @@ const Task = () => {
                       <span className={`${isChecked ? "done" : ""}`}>
                         <div className="checker">
                           <span>
+                            {/* Checkbox for marking task as complete */}
                             <input
                               type="checkbox"
                               checked={isChecked}
@@ -173,10 +209,12 @@ const Task = () => {
                         &nbsp;{taskName}
                         <br />
                         <br />
-                          <small className="text-muted">
-                            Due date: {new Date(completeBy).toLocaleDateString()}
-                          </small>
+                        <small className="text-muted">
+                          {/* Displaying the due date for the task */}
+                          Due date: {new Date(completeBy).toLocaleDateString()}
+                        </small>
                       </span>
+                      {/* Button to trigger modal for editing the task */}
                       <span className="float-end mx-3">
                         <button
                           type="button"
@@ -192,6 +230,7 @@ const Task = () => {
                           Edit
                         </button>
                       </span>
+                      {/* Button to delete the task */}
                       <button
                         onClick={() => deleteTask(id)}
                         type="button"
@@ -208,7 +247,7 @@ const Task = () => {
         </div>
       </div>
 
-      {/* Add Task Modal */}
+      {/* Modal for adding a new task */}
       <div
         className="modal fade"
         id="exampleModal1"
@@ -275,7 +314,7 @@ const Task = () => {
                     className="btn btn-primary"
                     data-bs-dismiss="modal"
                   >
-                    Add task
+                    Add
                   </button>
                 </div>
               </form>
@@ -284,7 +323,7 @@ const Task = () => {
         </div>
       </div>
 
-      {/* Edit Task Modal */}
+      {/* Modal for editing an existing task */}
       <div
         className="modal fade"
         id="exampleModal2"
@@ -296,7 +335,7 @@ const Task = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h1 className="modal-title fs-5" id="exampleModalLabel">
-                Edit Task
+                Update Task
               </h1>
               <button
                 type="button"
@@ -313,11 +352,11 @@ const Task = () => {
                 }}
               >
                 <div className="mb-3">
-                  <label htmlFor="updatedTaskInput" className="form-label">
+                  <label htmlFor="updateTaskInput" className="form-label">
                     Task Name
                   </label>
                   <input
-                    id="updatedTaskInput"
+                    id="updateTaskInput"
                     className="form-control"
                     type="text"
                     placeholder="Enter the task"
@@ -326,11 +365,11 @@ const Task = () => {
                   />
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="updatedDateInput" className="form-label">
+                  <label htmlFor="updateDateInput" className="form-label">
                     Due Date
                   </label>
                   <input
-                    id="updatedDateInput"
+                    id="updateDateInput"
                     className="form-control"
                     type="date"
                     placeholder="Enter due date"
@@ -351,7 +390,7 @@ const Task = () => {
                     className="btn btn-primary"
                     data-bs-dismiss="modal"
                   >
-                    Save changes
+                    Update
                   </button>
                 </div>
               </form>
