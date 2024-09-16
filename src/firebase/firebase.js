@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+require('dotenv').config();
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -44,12 +45,12 @@ import { getFirestore } from "firebase/firestore";
 
 // Firebase configuration for the "task-manager-application-b016b" project
 const firebaseConfig = {
-  apiKey: "AIzaSyA3LDrI6sbyv2enuLUz9Y8I91WC5kGkVBE",
-  authDomain: "task-manager-application-b016b.firebaseapp.com",
-  projectId: "task-manager-application-b016b",
-  storageBucket: "task-manager-application-b016b.appspot.com",
-  messagingSenderId: "961920185063",
-  appId: "1:961920185063:web:75f1fa6c86b25133f46842",
+  apiKey: firebase_api.env.API_KEY,
+  authDomain: firebase_api.env.AUTH_DOMAIN,
+  projectId: firebase_api.env.PROJECT_ID,
+  storageBucket: firebase_api.env.STORAGE_BUCKET,
+  messagingSenderId: firebase_api.env.MSG_SENDER_ID,
+  appId: firebase_api.env.APP_ID,
 };
 
 // Initialize Firebase with the provided configuration
